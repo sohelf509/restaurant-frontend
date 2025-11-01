@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';  // ✅ Add useSearchParams
 import axios from 'axios';
 
 const MenuPage = () => {
@@ -8,6 +8,9 @@ const MenuPage = () => {
   const [error, setError] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();  // ✅ Add this
+  
+  const tableNumber = searchParams.get('table');  // ✅ Add this
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -37,7 +40,6 @@ const MenuPage = () => {
     : menuItems.filter(item => item.category === selectedCategory && item.isAvailable);
 
   const handleAddToCart = (item) => {
-    // Get existing cart from localStorage
     const existingCart = JSON.parse(localStorage.getItem('cart') || '[]');
     
     const existingItem = existingCart.find(cartItem => cartItem._id === item._id);
@@ -53,11 +55,14 @@ const MenuPage = () => {
       updatedCart = [...existingCart, { ...item, quantity: 1 }];
     }
     
-    // Save to localStorage
     localStorage.setItem('cart', JSON.stringify(updatedCart));
     
-    // Redirect to order page
-    navigate('/order');
+    // ✅ Pass table number when navigating to order page
+    if (tableNumber) {
+      navigate(`/order?table=${tableNumber}`);
+    } else {
+      navigate('/order');
+    }
   };
 
   if (loading) {
@@ -88,9 +93,15 @@ const MenuPage = () => {
       {/* Header */}
       <header className="bg-white shadow-md sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-gray-900">Our Menu</h1>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Our Menu</h1>
+            {/* ✅ Show table number if available */}
+            {tableNumber && (
+              <p className="text-sm text-indigo-600 font-semibold mt-1">Table {tableNumber}</p>
+            )}
+          </div>
           <button 
-            onClick={() => navigate('/order')}
+            onClick={() => navigate(tableNumber ? `/order?table=${tableNumber}` : '/order')}  // ✅ Pass table number
             className="bg-gradient-to-r from-pink-500 to-rose-500 text-white px-6 py-3 rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 flex items-center gap-2"
           >
             <span className="text-xl">🛒</span>
