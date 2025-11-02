@@ -23,14 +23,34 @@ const OrderPage = () => {
     const savedCart = JSON.parse(localStorage.getItem('cart') || '[]');
     console.log('📦 Loaded cart from localStorage:', savedCart);
     
-    // Validate cart items
-    const invalidItems = savedCart.filter(item => !item._id);
+    // Normalize cart items - ensure they all have _id field
+    const normalizedCart = savedCart.map(item => {
+      const itemId = item._id || item.id;
+      if (!itemId) {
+        console.error('❌ Item missing ID:', item);
+        return null;
+      }
+      return {
+        ...item,
+        _id: itemId // Ensure _id exists
+      };
+    }).filter(Boolean); // Remove any null items
+    
+    // Check for invalid items
+    const invalidItems = normalizedCart.filter(item => !item._id);
     if (invalidItems.length > 0) {
       console.error('❌ Invalid items found:', invalidItems);
       setError('Your cart contains invalid items. Please clear it and try again.');
     }
     
-    setCart(savedCart);
+    // Update cart if it was normalized
+    if (normalizedCart.length !== savedCart.length || 
+        JSON.stringify(normalizedCart) !== JSON.stringify(savedCart)) {
+      console.log('🔄 Normalizing cart...');
+      localStorage.setItem('cart', JSON.stringify(normalizedCart));
+    }
+    
+    setCart(normalizedCart);
     
     // Fetch menu items
     fetchMenuItems();
