@@ -21,6 +21,15 @@ const OrderPage = () => {
   useEffect(() => {
     // Load cart from localStorage
     const savedCart = JSON.parse(localStorage.getItem('cart') || '[]');
+    console.log('📦 Loaded cart from localStorage:', savedCart);
+    
+    // Validate cart items
+    const invalidItems = savedCart.filter(item => !item._id);
+    if (invalidItems.length > 0) {
+      console.error('❌ Invalid items found:', invalidItems);
+      setError('Your cart contains invalid items. Please clear it and try again.');
+    }
+    
     setCart(savedCart);
     
     // Fetch menu items
@@ -29,13 +38,14 @@ const OrderPage = () => {
 
   const fetchMenuItems = async () => {
     try {
+      console.log('🔍 Fetching menu from:', `${API_URL}/menu`);
       const response = await axios.get(`${API_URL}/menu`);
       if (response.data.success) {
         setMenuItems(response.data.data.filter(item => item.isAvailable));
       }
     } catch (err) {
       setError('Failed to load menu items');
-      console.error(err);
+      console.error('❌ Menu fetch error:', err);
     }
   };
 
@@ -61,6 +71,7 @@ const OrderPage = () => {
     
     setCart(updatedCart);
     localStorage.setItem('cart', JSON.stringify(updatedCart));
+    console.log('✅ Item added to cart:', item.name);
   };
 
   const updateQuantity = (itemId, newQuantity) => {
@@ -84,12 +95,25 @@ const OrderPage = () => {
     localStorage.setItem('cart', JSON.stringify(updatedCart));
   };
 
+  const clearCart = () => {
+    if (window.confirm('Are you sure you want to clear your cart?')) {
+      setCart([]);
+      localStorage.removeItem('cart');
+      setError(null);
+      console.log('🗑️ Cart cleared');
+    }
+  };
+
   const getTotalAmount = () => {
     return cart.reduce((total, item) => total + (item.price * item.quantity), 0).toFixed(2);
   };
 
   const handleSubmitOrder = async (e) => {
     e.preventDefault();
+    
+    console.log('🛒 Submitting order...');
+    console.log('Cart:', cart);
+    console.log('Table:', tableNumber);
     
     if (cart.length === 0) {
       setError('Please add items to your order');
@@ -98,6 +122,14 @@ const OrderPage = () => {
 
     if (!tableNumber) {
       setError('Table number is required');
+      return;
+    }
+
+    // Validate all cart items have _id
+    const invalidItems = cart.filter(item => !item._id);
+    if (invalidItems.length > 0) {
+      console.error('❌ Invalid items in cart:', invalidItems);
+      setError('Some items in your cart are corrupted. Please clear your cart and add items again.');
       return;
     }
 
@@ -115,17 +147,27 @@ const OrderPage = () => {
         }))
       };
 
+      console.log('📤 Sending order data:', orderData);
+      console.log('🌐 To URL:', `${API_URL}/orders`);
+
       const response = await axios.post(`${API_URL}/orders`, orderData);
+      
+      console.log('✅ Order response:', response.data);
       
       if (response.data.success) {
         const orderId = response.data.data._id;
-        // Clear cart after successful order
         localStorage.removeItem('cart');
         navigate(`/track-order/${orderId}`);
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to place order');
-      console.error(err);
+      console.error('❌ Order submission error:', err);
+      console.error('❌ Error details:', err.response?.data);
+      console.error('❌ Status code:', err.response?.status);
+      
+      const errorMessage = err.response?.data?.message || 
+                          err.response?.data?.error ||
+                          `Failed to place order (${err.response?.status || 'Network Error'})`;
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -137,7 +179,7 @@ const OrderPage = () => {
       <div className="bg-gradient-to-r from-indigo-600 to-purple-700 text-white py-8 px-4">
         <div className="max-w-7xl mx-auto flex items-center gap-4">
           <button 
-            onClick={() => navigate('/')}
+            onClick={() => navigate(tableNumber ? `/?table=${tableNumber}` : '/')}
             className="text-white hover:text-gray-200 text-2xl"
           >
             ←
@@ -155,9 +197,21 @@ const OrderPage = () => {
 
       {error && (
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded flex justify-between items-center">
-            <span className="text-red-700">{error}</span>
-            <button onClick={() => setError(null)} className="text-red-700 font-bold text-xl">✕</button>
+          <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
+            <div className="flex justify-between items-start">
+              <div className="flex-1">
+                <p className="text-red-700 font-semibold">{error}</p>
+                {error.includes('corrupted') || error.includes('invalid') ? (
+                  <button 
+                    onClick={clearCart}
+                    className="mt-2 text-red-600 underline hover:text-red-800 text-sm"
+                  >
+                    Clear Cart & Start Fresh
+                  </button>
+                ) : null}
+              </div>
+              <button onClick={() => setError(null)} className="text-red-700 font-bold text-xl ml-4">✕</button>
+            </div>
           </div>
         </div>
       )}
@@ -330,10 +384,20 @@ const OrderPage = () => {
                     </div>
 
                     <div className="border-t pt-4">
-                      <div className="flex justify-between items-center mb-6">
+                      <div className="flex justify-between items-center mb-4">
                         <span className="text-lg font-semibold text-gray-700">Total:</span>
                         <span className="text-3xl font-bold text-indigo-600">${getTotalAmount()}</span>
                       </div>
+
+                      {cart.length > 0 && (
+                        <button 
+                          type="button"
+                          onClick={clearCart}
+                          className="w-full mb-3 bg-white border-2 border-red-400 text-red-600 py-2 rounded-lg hover:bg-red-50 transition-colors text-sm font-semibold"
+                        >
+                          Clear Cart
+                        </button>
+                      )}
 
                       <button 
                         type="submit" 
