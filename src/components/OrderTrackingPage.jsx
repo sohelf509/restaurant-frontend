@@ -126,6 +126,9 @@ const OrderTrackingPage = () => {
 
   const statusInfo = getStatusInfo(order.status);
   const currentStep = getCurrentStepIndex(order.status);
+  
+  // Handle both _id and id fields
+  const orderDisplayId = order._id || order.id;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-600 to-purple-700 pb-8">
@@ -202,7 +205,7 @@ const OrderTrackingPage = () => {
               <div className="space-y-4">
                 <div className="flex justify-between">
                   <span className="text-gray-600 font-semibold">Order ID:</span>
-                  <span className="text-gray-900 font-mono text-sm">{order._id}</span>
+                  <span className="text-gray-900 font-mono text-sm">{orderDisplayId}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600 font-semibold">Table Number:</span>
@@ -231,27 +234,32 @@ const OrderTrackingPage = () => {
             <div className="bg-white rounded-3xl p-8 shadow-2xl">
               <h3 className="text-2xl font-bold text-gray-900 mb-6 border-b pb-4">Order Items</h3>
               <div className="space-y-4 max-h-96 overflow-y-auto">
-                {order.items.map((item, index) => (
-                  <div key={index} className="flex gap-4 bg-gray-50 rounded-xl p-4 hover:bg-gray-100 transition-colors">
-                    {item.menuItem?.imageUrl && (
-                      <img 
-                        src={item.menuItem.imageUrl} 
-                        alt={item.menuItem?.name} 
-                        className="w-20 h-20 object-cover rounded-lg flex-shrink-0"
-                      />
-                    )}
-                    <div className="flex-1">
-                      <h4 className="font-bold text-gray-900">{item.menuItem?.name || 'Item'}</h4>
-                      <p className="text-gray-600 text-sm">Quantity: {item.quantity}</p>
-                      <p className="text-gray-600 text-sm">${item.price.toFixed(2)} each</p>
+                {order.items.map((item, index) => {
+                  // Handle both _id and id for item keys
+                  const itemKey = item._id || item.id || index;
+                  
+                  return (
+                    <div key={itemKey} className="flex gap-4 bg-gray-50 rounded-xl p-4 hover:bg-gray-100 transition-colors">
+                      {item.menuItem?.imageUrl && (
+                        <img 
+                          src={item.menuItem.imageUrl} 
+                          alt={item.menuItem?.name} 
+                          className="w-20 h-20 object-cover rounded-lg flex-shrink-0"
+                        />
+                      )}
+                      <div className="flex-1">
+                        <h4 className="font-bold text-gray-900">{item.menuItem?.name || 'Item'}</h4>
+                        <p className="text-gray-600 text-sm">Quantity: {item.quantity}</p>
+                        <p className="text-gray-600 text-sm">${item.price.toFixed(2)} each</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xl font-bold text-indigo-600">
+                          ${(item.price * item.quantity).toFixed(2)}
+                        </p>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-xl font-bold text-indigo-600">
-                        ${(item.price * item.quantity).toFixed(2)}
-                      </p>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               <div className="border-t mt-6 pt-6">

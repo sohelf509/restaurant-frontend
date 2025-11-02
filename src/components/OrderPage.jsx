@@ -23,21 +23,21 @@ const OrderPage = () => {
     const savedCart = JSON.parse(localStorage.getItem('cart') || '[]');
     console.log('📦 Loaded cart from localStorage:', savedCart);
     
-    // Normalize cart items - ensure they all have _id field
+    // Normalize cart items - ensure they all have id field
     const normalizedCart = savedCart.map(item => {
-      const itemId = item._id || item.id;
+      const itemId = item.id || item._id;
       if (!itemId) {
         console.error('❌ Item missing ID:', item);
         return null;
       }
       return {
         ...item,
-        _id: itemId // Ensure _id exists
+        id: itemId // Ensure id exists (API uses 'id' not '_id')
       };
     }).filter(Boolean); // Remove any null items
     
     // Check for invalid items
-    const invalidItems = normalizedCart.filter(item => !item._id);
+    const invalidItems = normalizedCart.filter(item => !item.id);
     if (invalidItems.length > 0) {
       console.error('❌ Invalid items found:', invalidItems);
       setError('Your cart contains invalid items. Please clear it and try again.');
@@ -76,17 +76,23 @@ const OrderPage = () => {
     : menuItems.filter(item => item.category === selectedCategory);
 
   const addToCart = (item) => {
-    const existingItem = cart.find(cartItem => cartItem._id === item._id);
+    const itemId = item.id || item._id;
+    const existingItem = cart.find(cartItem => cartItem.id === itemId);
     let updatedCart;
     
     if (existingItem) {
       updatedCart = cart.map(cartItem => 
-        cartItem._id === item._id 
+        cartItem.id === itemId 
           ? { ...cartItem, quantity: cartItem.quantity + 1 }
           : cartItem
       );
     } else {
-      updatedCart = [...cart, { ...item, quantity: 1 }];
+      // Store with 'id' field to match API
+      updatedCart = [...cart, { 
+        ...item, 
+        id: itemId,
+        quantity: 1 
+      }];
     }
     
     setCart(updatedCart);
@@ -96,21 +102,21 @@ const OrderPage = () => {
 
   const updateQuantity = (itemId, newQuantity) => {
     if (newQuantity < 1) {
-      const updatedCart = cart.filter(item => item._id !== itemId);
+      const updatedCart = cart.filter(item => item.id !== itemId);
       setCart(updatedCart);
       localStorage.setItem('cart', JSON.stringify(updatedCart));
       return;
     }
     
     const updatedCart = cart.map(item => 
-      item._id === itemId ? { ...item, quantity: newQuantity } : item
+      item.id === itemId ? { ...item, quantity: newQuantity } : item
     );
     setCart(updatedCart);
     localStorage.setItem('cart', JSON.stringify(updatedCart));
   };
 
   const removeFromCart = (itemId) => {
-    const updatedCart = cart.filter(item => item._id !== itemId);
+    const updatedCart = cart.filter(item => item.id !== itemId);
     setCart(updatedCart);
     localStorage.setItem('cart', JSON.stringify(updatedCart));
   };
@@ -145,8 +151,8 @@ const OrderPage = () => {
       return;
     }
 
-    // Validate all cart items have _id
-    const invalidItems = cart.filter(item => !item._id);
+    // Validate all cart items have id
+    const invalidItems = cart.filter(item => !item.id);
     if (invalidItems.length > 0) {
       console.error('❌ Invalid items in cart:', invalidItems);
       setError('Some items in your cart are corrupted. Please clear your cart and add items again.');
@@ -162,7 +168,7 @@ const OrderPage = () => {
         customerName: customerName || 'Guest',
         orderType,
         items: cart.map(item => ({
-          menuItem: item._id,
+          menuItem: item.id, // Send 'id' to backend
           quantity: item.quantity
         }))
       };
@@ -175,7 +181,7 @@ const OrderPage = () => {
       console.log('✅ Order response:', response.data);
       
       if (response.data.success) {
-        const orderId = response.data.data._id;
+        const orderId = response.data.data._id || response.data.data.id;
         localStorage.removeItem('cart');
         navigate(`/track-order/${orderId}`);
       }
@@ -263,7 +269,7 @@ const OrderPage = () => {
               {/* Menu Items */}
               <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
                 {filteredItems.map(item => (
-                  <div key={item._id} className="flex gap-4 bg-gray-50 rounded-xl p-4 hover:bg-gray-100 transition-colors group">
+                  <div key={item.id || item._id} className="flex gap-4 bg-gray-50 rounded-xl p-4 hover:bg-gray-100 transition-colors group">
                     {item.imageUrl && (
                       <img 
                         src={item.imageUrl} 
@@ -366,12 +372,12 @@ const OrderPage = () => {
                   <>
                     <div className="space-y-3 max-h-60 overflow-y-auto">
                       {cart.map(item => (
-                        <div key={item._id} className="bg-gray-50 rounded-lg p-3">
+                        <div key={item.id || item._id} className="bg-gray-50 rounded-lg p-3">
                           <div className="flex justify-between items-start mb-2">
                             <h4 className="font-semibold text-gray-900 flex-1">{item.name}</h4>
                             <button 
                               type="button"
-                              onClick={() => removeFromCart(item._id)}
+                              onClick={() => removeFromCart(item.id)}
                               className="text-red-500 hover:text-red-700 text-lg ml-2"
                             >
                               🗑️
@@ -381,7 +387,7 @@ const OrderPage = () => {
                             <div className="flex items-center gap-2">
                               <button 
                                 type="button"
-                                onClick={() => updateQuantity(item._id, item.quantity - 1)}
+                                onClick={() => updateQuantity(item.id, item.quantity - 1)}
                                 className="w-7 h-7 bg-white border border-gray-300 rounded font-bold hover:bg-gray-100"
                               >
                                 -
@@ -389,7 +395,7 @@ const OrderPage = () => {
                               <span className="font-semibold w-8 text-center">{item.quantity}</span>
                               <button 
                                 type="button"
-                                onClick={() => updateQuantity(item._id, item.quantity + 1)}
+                                onClick={() => updateQuantity(item.id, item.quantity + 1)}
                                 className="w-7 h-7 bg-white border border-gray-300 rounded font-bold hover:bg-gray-100"
                               >
                                 +

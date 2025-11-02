@@ -31,8 +31,8 @@ const MenuPage = () => {
         if (items.length > 0) {
           console.log('🔍 First item:', items[0]);
           console.log('🔍 First item keys:', Object.keys(items[0]));
-          console.log('🔍 _id value:', items[0]._id);
-          console.log('🔍 _id type:', typeof items[0]._id);
+          console.log('🔍 id value:', items[0].id);
+          console.log('🔍 id type:', typeof items[0].id);
         }
         
         setMenuItems(items);
@@ -55,11 +55,9 @@ const MenuPage = () => {
     console.log('➕ Adding item to cart:', item);
     console.log('Full item object:', JSON.stringify(item, null, 2));
     
-    // Handle both _id and id fields (MongoDB ObjectId vs regular id)
-    const itemId = item._id || item.id;
+    // API returns 'id' field, not '_id'
+    const itemId = item.id || item._id;
     console.log('Item ID:', itemId);
-    console.log('Item _id:', item._id);
-    console.log('Item id:', item.id);
     
     // Validate item has an ID
     if (!itemId) {
@@ -73,21 +71,22 @@ const MenuPage = () => {
     const existingCart = JSON.parse(localStorage.getItem('cart') || '[]');
     console.log('Current cart:', existingCart);
     
-    const existingItem = existingCart.find(cartItem => cartItem._id === itemId);
+    // Use 'id' consistently since that's what the API returns
+    const existingItem = existingCart.find(cartItem => cartItem.id === itemId);
     let updatedCart;
     
     if (existingItem) {
       // Update quantity of existing item
       updatedCart = existingCart.map(cartItem => 
-        cartItem._id === itemId 
+        cartItem.id === itemId 
           ? { ...cartItem, quantity: cartItem.quantity + 1 }
           : cartItem
       );
       console.log('📦 Updated existing item quantity');
     } else {
-      // Add new item with all necessary fields
+      // Add new item with all necessary fields - use 'id' field
       const cartItem = {
-        _id: itemId, // Use the ID we found (either _id or id)
+        id: itemId, // Use 'id' to match API response
         name: item.name,
         description: item.description,
         price: item.price,
@@ -179,7 +178,7 @@ const MenuPage = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredItems.map(item => (
             <div 
-              key={item._id} 
+              key={item.id || item._id} 
               className="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 group"
             >
               {item.imageUrl && (
