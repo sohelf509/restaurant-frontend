@@ -1,3 +1,4 @@
+// src/pages/OrderPage.jsx
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -12,6 +13,9 @@ const OrderPage = () => {
   const [cart, setCart] = useState([]);
   const [customerName, setCustomerName] = useState('');
   const [orderType, setOrderType] = useState('dine-in');
+  const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('cash-on-delivery');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -32,9 +36,9 @@ const OrderPage = () => {
       }
       return {
         ...item,
-        id: itemId // Ensure id exists (API uses 'id' not '_id')
+        id: itemId
       };
-    }).filter(Boolean); // Remove any null items
+    }).filter(Boolean);
     
     // Check for invalid items
     const invalidItems = normalizedCart.filter(item => !item.id);
@@ -87,7 +91,6 @@ const OrderPage = () => {
           : cartItem
       );
     } else {
-      // Store with 'id' field to match API
       updatedCart = [...cart, { 
         ...item, 
         id: itemId,
@@ -130,8 +133,16 @@ const OrderPage = () => {
     }
   };
 
+  const getSubtotal = () => {
+    return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+  };
+
+  const getDeliveryFee = () => {
+    return orderType === 'home-delivery' ? 5.00 : 0;
+  };
+
   const getTotalAmount = () => {
-    return cart.reduce((total, item) => total + (item.price * item.quantity), 0).toFixed(2);
+    return (getSubtotal() + getDeliveryFee()).toFixed(2);
   };
 
   const handleSubmitOrder = async (e) => {
@@ -139,16 +150,28 @@ const OrderPage = () => {
     
     console.log('🛒 Submitting order...');
     console.log('Cart:', cart);
-    console.log('Table:', tableNumber);
+    console.log('Order Type:', orderType);
     
     if (cart.length === 0) {
       setError('Please add items to your order');
       return;
     }
 
-    if (!tableNumber) {
-      setError('Table number is required');
+    // Validation based on order type
+    if (orderType === 'dine-in' && !tableNumber) {
+      setError('Table number is required for dine-in orders');
       return;
+    }
+
+    if (orderType === 'home-delivery') {
+      if (!deliveryAddress || !phoneNumber) {
+        setError('Delivery address and phone number are required');
+        return;
+      }
+      if (!customerName) {
+        setError('Your name is required for home delivery');
+        return;
+      }
     }
 
     // Validate all cart items have id
@@ -164,14 +187,25 @@ const OrderPage = () => {
 
     try {
       const orderData = {
-        tableNumber: parseInt(tableNumber),
         customerName: customerName || 'Guest',
         orderType,
         items: cart.map(item => ({
-          menuItem: item.id, // Send 'id' to backend
+          menuItem: item.id,
           quantity: item.quantity
         }))
       };
+
+      // Add dine-in specific fields
+      if (orderType === 'dine-in') {
+        orderData.tableNumber = parseInt(tableNumber);
+      }
+
+      // Add delivery specific fields
+      if (orderType === 'home-delivery') {
+        orderData.deliveryAddress = deliveryAddress;
+        orderData.phoneNumber = phoneNumber;
+        orderData.paymentMethod = paymentMethod;
+      }
 
       console.log('📤 Sending order data:', orderData);
       console.log('🌐 To URL:', `${API_URL}/orders`);
@@ -212,10 +246,12 @@ const OrderPage = () => {
           </button>
           <div className="flex-1">
             <h1 className="text-4xl font-bold mb-2">
-              {tableNumber ? `Order for Table ${tableNumber}` : 'Your Cart'}
+              {orderType === 'home-delivery' ? '🏠 Home Delivery' : `🍽️ Order for Table ${tableNumber || ''}`}
             </h1>
             <p className="text-indigo-100">
-              {tableNumber ? 'Review and place your order' : 'Add items and select table'}
+              {orderType === 'home-delivery' 
+                ? 'We deliver to your doorstep' 
+                : 'Review and place your order'}
             </p>
           </div>
         </div>
@@ -306,60 +342,127 @@ const OrderPage = () => {
           {/* Cart Summary Section */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-4">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Your Cart</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Your Order</h2>
               
               <form onSubmit={handleSubmitOrder} className="space-y-4">
-                {/* Table Number Input (if not from QR) */}
-                {!tableNumber && (
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Table Number *
-                    </label>
-                    <input
-                      type="number"
-                      min="1"
-                      required
-                      placeholder="Enter table number"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                      onChange={(e) => {
-                        const url = new URL(window.location);
-                        url.searchParams.set('table', e.target.value);
-                        window.history.pushState({}, '', url);
-                      }}
-                    />
-                  </div>
-                )}
-
-                {/* Customer Name */}
+                {/* Order Type Selection */}
                 <div>
-                  <label htmlFor="customerName" className="block text-sm font-semibold text-gray-700 mb-2">
-                    Your Name (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    id="customerName"
-                    value={customerName}
-                    onChange={(e) => setCustomerName(e.target.value)}
-                    placeholder="Enter your name"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                  />
-                </div>
-
-                {/* Order Type */}
-                <div>
-                  <label htmlFor="orderType" className="block text-sm font-semibold text-gray-700 mb-2">
-                    Order Type
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Order Type *
                   </label>
                   <select
-                    id="orderType"
                     value={orderType}
                     onChange={(e) => setOrderType(e.target.value)}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
                   >
-                    <option value="dine-in">Dine In</option>
-                    <option value="takeaway">Takeaway</option>
+                    <option value="dine-in">🍽️ Dine In</option>
+                    <option value="home-delivery">🏠 Home Delivery</option>
                   </select>
                 </div>
+
+                {/* Conditional Fields for Dine-In */}
+                {orderType === 'dine-in' && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Table Number *
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        required
+                        value={tableNumber || ''}
+                        onChange={(e) => {
+                          const url = new URL(window.location);
+                          url.searchParams.set('table', e.target.value);
+                          window.history.pushState({}, '', url);
+                        }}
+                        placeholder="Enter table number"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Your Name (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={customerName}
+                        onChange={(e) => setCustomerName(e.target.value)}
+                        placeholder="Enter your name"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                      />
+                    </div>
+                  </>
+                )}
+
+                {/* Conditional Fields for Home Delivery */}
+                {orderType === 'home-delivery' && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Your Name *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={customerName}
+                        onChange={(e) => setCustomerName(e.target.value)}
+                        placeholder="Enter your name"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Phone Number *
+                      </label>
+                      <input
+                        type="tel"
+                        required
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
+                        placeholder="Enter your phone number"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Delivery Address *
+                      </label>
+                      <textarea
+                        required
+                        value={deliveryAddress}
+                        onChange={(e) => setDeliveryAddress(e.target.value)}
+                        placeholder="Enter your full delivery address"
+                        rows="3"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Payment Method *
+                      </label>
+                      <select
+                        value={paymentMethod}
+                        onChange={(e) => setPaymentMethod(e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                      >
+                        <option value="cash-on-delivery">💵 Cash on Delivery</option>
+                        <option value="online-payment">💳 Online Payment</option>
+                      </select>
+                    </div>
+
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                      <p className="text-sm text-blue-800">
+                        <strong>ℹ️ Delivery Fee:</strong> $5.00
+                      </p>
+                    </div>
+                  </>
+                )}
 
                 {/* Cart Items */}
                 {cart.length === 0 ? (
@@ -409,8 +512,20 @@ const OrderPage = () => {
                       ))}
                     </div>
 
-                    <div className="border-t pt-4">
-                      <div className="flex justify-between items-center mb-4">
+                    <div className="border-t pt-4 space-y-2">
+                      <div className="flex justify-between items-center text-gray-700">
+                        <span>Subtotal:</span>
+                        <span className="font-semibold">${getSubtotal().toFixed(2)}</span>
+                      </div>
+                      
+                      {orderType === 'home-delivery' && (
+                        <div className="flex justify-between items-center text-gray-700">
+                          <span>Delivery Fee:</span>
+                          <span className="font-semibold">${getDeliveryFee().toFixed(2)}</span>
+                        </div>
+                      )}
+
+                      <div className="flex justify-between items-center pt-2 border-t">
                         <span className="text-lg font-semibold text-gray-700">Total:</span>
                         <span className="text-3xl font-bold text-indigo-600">${getTotalAmount()}</span>
                       </div>
@@ -430,7 +545,8 @@ const OrderPage = () => {
                         disabled={loading || cart.length === 0}
                         className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                       >
-                        {loading ? 'Placing Order...' : 'Place Order'}
+                        {loading ? 'Placing Order...' : 
+                         orderType === 'home-delivery' ? '🚚 Place Delivery Order' : '🍽️ Place Order'}
                       </button>
                     </div>
                   </>

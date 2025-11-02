@@ -1,3 +1,4 @@
+// src/pages/OrderTrackingPage.jsx
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -59,6 +60,22 @@ const OrderTrackingPage = () => {
         bgLight: 'bg-blue-50',
         description: 'Your order is being prepared by our kitchen staff'
       },
+      'out-for-delivery': {
+        label: 'Out for Delivery',
+        icon: '🚗',
+        color: 'bg-purple-500',
+        textColor: 'text-purple-600',
+        bgLight: 'bg-purple-50',
+        description: 'Your order is on the way to your location'
+      },
+      delivered: {
+        label: 'Delivered',
+        icon: '✅',
+        color: 'bg-emerald-500',
+        textColor: 'text-emerald-600',
+        bgLight: 'bg-emerald-50',
+        description: 'Your order has been delivered. Enjoy your meal!'
+      },
       served: {
         label: 'Served',
         icon: '🍽️',
@@ -80,6 +97,9 @@ const OrderTrackingPage = () => {
   };
 
   const getStatusSteps = () => {
+    if (order?.orderType === 'home-delivery') {
+      return ['pending', 'preparing', 'out-for-delivery', 'delivered'];
+    }
     return ['pending', 'preparing', 'served', 'completed'];
   };
 
@@ -141,7 +161,9 @@ const OrderTrackingPage = () => {
           >
             <span className="text-xl">←</span> Back
           </button>
-          <h1 className="text-2xl font-bold text-white">Track Your Order</h1>
+          <h1 className="text-2xl font-bold text-white">
+            {order.orderType === 'home-delivery' ? '🚚 Track Delivery' : '🍽️ Track Order'}
+          </h1>
           <label className="flex items-center gap-2 text-white cursor-pointer">
             <input
               type="checkbox"
@@ -169,6 +191,9 @@ const OrderTrackingPage = () => {
 
             {/* Progress Tracker */}
             <div className="bg-white rounded-3xl p-8 shadow-2xl">
+              <h3 className="text-xl font-bold text-gray-900 mb-6">
+                {order.orderType === 'home-delivery' ? '🚚 Delivery Progress' : '🍽️ Order Progress'}
+              </h3>
               <div className="space-y-6">
                 {getStatusSteps().map((step, index) => {
                   const stepInfo = getStatusInfo(step);
@@ -207,22 +232,61 @@ const OrderTrackingPage = () => {
                   <span className="text-gray-600 font-semibold">Order ID:</span>
                   <span className="text-gray-900 font-mono text-sm">{orderDisplayId}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600 font-semibold">Table Number:</span>
-                  <span className="text-indigo-600 font-bold text-xl">Table {order.tableNumber}</span>
-                </div>
+
+                {/* Conditional: Show Table Number only for dine-in */}
+                {order.orderType === 'dine-in' && order.tableNumber && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 font-semibold">Table Number:</span>
+                    <span className="text-indigo-600 font-bold text-xl">Table {order.tableNumber}</span>
+                  </div>
+                )}
+
                 {order.customerName && (
                   <div className="flex justify-between">
                     <span className="text-gray-600 font-semibold">Customer Name:</span>
                     <span className="text-gray-900">{order.customerName}</span>
                   </div>
                 )}
+
                 <div className="flex justify-between">
                   <span className="text-gray-600 font-semibold">Order Type:</span>
                   <span className="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-semibold capitalize">
-                    {order.orderType}
+                    {order.orderType?.replace('-', ' ')}
                   </span>
                 </div>
+
+                {/* Conditional: Show Delivery Details only for home-delivery */}
+                {order.orderType === 'home-delivery' && (
+                  <>
+                    {order.phoneNumber && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600 font-semibold">Phone:</span>
+                        <span className="text-gray-900">{order.phoneNumber}</span>
+                      </div>
+                    )}
+                    {order.deliveryAddress && (
+                      <div className="flex justify-between items-start">
+                        <span className="text-gray-600 font-semibold">Delivery Address:</span>
+                        <span className="text-gray-900 text-right text-sm max-w-xs">{order.deliveryAddress}</span>
+                      </div>
+                    )}
+                    {order.paymentMethod && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600 font-semibold">Payment Method:</span>
+                        <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-semibold capitalize">
+                          {order.paymentMethod?.replace('-', ' ')}
+                        </span>
+                      </div>
+                    )}
+                    {order.deliveryFee > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600 font-semibold">Delivery Fee:</span>
+                        <span className="text-gray-900 font-semibold">${order.deliveryFee.toFixed(2)}</span>
+                      </div>
+                    )}
+                  </>
+                )}
+
                 <div className="flex justify-between">
                   <span className="text-gray-600 font-semibold">Order Time:</span>
                   <span className="text-gray-900 text-sm">{formatDate(order.createdAt)}</span>
@@ -262,7 +326,26 @@ const OrderTrackingPage = () => {
                 })}
               </div>
 
-              <div className="border-t mt-6 pt-6">
+              <div className="border-t mt-6 pt-6 space-y-2">
+                {/* Show Subtotal and Delivery Fee for home delivery */}
+                {order.orderType === 'home-delivery' && order.deliveryFee > 0 && (
+                  <>
+                    <div className="flex justify-between items-center text-gray-700">
+                      <span className="text-lg font-semibold">Subtotal:</span>
+                      <span className="text-2xl font-bold text-gray-900">
+                        ${(order.totalAmount - order.deliveryFee).toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center text-gray-700">
+                      <span className="text-lg font-semibold">Delivery Fee:</span>
+                      <span className="text-2xl font-bold text-gray-900">
+                        ${order.deliveryFee.toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="border-t pt-2"></div>
+                  </>
+                )}
+                
                 <div className="flex justify-between items-center">
                   <span className="text-xl font-semibold text-gray-700">Total Amount:</span>
                   <span className="text-4xl font-bold text-indigo-600">${order.totalAmount.toFixed(2)}</span>
@@ -278,9 +361,15 @@ const OrderTrackingPage = () => {
               >
                 🔄 Refresh Status
               </button>
-              {order.status === 'completed' && (
+              {(order.status === 'completed' || order.status === 'delivered') && (
                 <button 
-                  onClick={() => navigate(`/order?table=${order.tableNumber}`)}
+                  onClick={() => {
+                    if (order.orderType === 'home-delivery') {
+                      navigate('/order');
+                    } else {
+                      navigate(`/order?table=${order.tableNumber}`);
+                    }
+                  }}
                   className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-xl font-semibold hover:shadow-xl transition-all"
                 >
                   Place New Order
@@ -294,7 +383,11 @@ const OrderTrackingPage = () => {
       {/* Help Section */}
       <div className="max-w-7xl mx-auto px-4 mt-8">
         <div className="bg-white/10 backdrop-blur-md text-white text-center py-6 px-4 rounded-2xl">
-          <p className="text-lg">Need assistance? Please call our staff or scan the QR code at your table.</p>
+          <p className="text-lg">
+            {order.orderType === 'home-delivery' 
+              ? 'Need help with your delivery? Call us at: (555) 123-4567' 
+              : 'Need assistance? Please call our staff or scan the QR code at your table.'}
+          </p>
         </div>
       </div>
     </div>
