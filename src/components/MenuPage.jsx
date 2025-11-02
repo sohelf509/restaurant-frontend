@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';  // ✅ Add useSearchParams
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 
 const MenuPage = () => {
@@ -8,9 +8,9 @@ const MenuPage = () => {
   const [error, setError] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();  // ✅ Add this
+  const [searchParams] = useSearchParams();
   
-  const tableNumber = searchParams.get('table');  // ✅ Add this
+  const tableNumber = searchParams.get('table');
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -21,13 +21,15 @@ const MenuPage = () => {
   const fetchMenuItems = async () => {
     try {
       setLoading(true);
+      console.log('🔍 Fetching menu from:', `${API_URL}/menu`);
       const response = await axios.get(`${API_URL}/menu`);
       if (response.data.success) {
+        console.log('✅ Menu items loaded:', response.data.data);
         setMenuItems(response.data.data);
       }
     } catch (err) {
       setError('Failed to load menu items');
-      console.error(err);
+      console.error('❌ Menu fetch error:', err);
     } finally {
       setLoading(false);
     }
@@ -40,24 +42,51 @@ const MenuPage = () => {
     : menuItems.filter(item => item.category === selectedCategory && item.isAvailable);
 
   const handleAddToCart = (item) => {
+    console.log('➕ Adding item to cart:', item);
+    console.log('Item _id:', item._id);
+    
+    // Validate item has _id
+    if (!item._id) {
+      console.error('❌ Item missing _id:', item);
+      alert('Error: Cannot add item without ID');
+      return;
+    }
+    
+    // Get existing cart from localStorage
     const existingCart = JSON.parse(localStorage.getItem('cart') || '[]');
+    console.log('Current cart:', existingCart);
     
     const existingItem = existingCart.find(cartItem => cartItem._id === item._id);
     let updatedCart;
     
     if (existingItem) {
+      // Update quantity of existing item
       updatedCart = existingCart.map(cartItem => 
         cartItem._id === item._id 
           ? { ...cartItem, quantity: cartItem.quantity + 1 }
           : cartItem
       );
+      console.log('📦 Updated existing item quantity');
     } else {
-      updatedCart = [...existingCart, { ...item, quantity: 1 }];
+      // Add new item with all necessary fields
+      const cartItem = {
+        _id: item._id,
+        name: item.name,
+        description: item.description,
+        price: item.price,
+        category: item.category,
+        imageUrl: item.imageUrl,
+        quantity: 1
+      };
+      updatedCart = [...existingCart, cartItem];
+      console.log('✅ Added new item to cart:', cartItem);
     }
     
+    // Save to localStorage
     localStorage.setItem('cart', JSON.stringify(updatedCart));
+    console.log('💾 Cart saved:', updatedCart);
     
-    // ✅ Pass table number when navigating to order page
+    // Redirect to order page with table number
     if (tableNumber) {
       navigate(`/order?table=${tableNumber}`);
     } else {
@@ -95,13 +124,12 @@ const MenuPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Our Menu</h1>
-            {/* ✅ Show table number if available */}
             {tableNumber && (
               <p className="text-sm text-indigo-600 font-semibold mt-1">Table {tableNumber}</p>
             )}
           </div>
           <button 
-            onClick={() => navigate(tableNumber ? `/order?table=${tableNumber}` : '/order')}  // ✅ Pass table number
+            onClick={() => navigate(tableNumber ? `/order?table=${tableNumber}` : '/order')}
             className="bg-gradient-to-r from-pink-500 to-rose-500 text-white px-6 py-3 rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 flex items-center gap-2"
           >
             <span className="text-xl">🛒</span>
