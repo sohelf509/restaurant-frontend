@@ -24,8 +24,18 @@ const MenuPage = () => {
       console.log('🔍 Fetching menu from:', `${API_URL}/menu`);
       const response = await axios.get(`${API_URL}/menu`);
       if (response.data.success) {
-        console.log('✅ Menu items loaded:', response.data.data);
-        setMenuItems(response.data.data);
+        const items = response.data.data;
+        console.log('✅ Menu items loaded:', items);
+        
+        // Debug first item structure
+        if (items.length > 0) {
+          console.log('🔍 First item:', items[0]);
+          console.log('🔍 First item keys:', Object.keys(items[0]));
+          console.log('🔍 _id value:', items[0]._id);
+          console.log('🔍 _id type:', typeof items[0]._id);
+        }
+        
+        setMenuItems(items);
       }
     } catch (err) {
       setError('Failed to load menu items');
@@ -43,12 +53,19 @@ const MenuPage = () => {
 
   const handleAddToCart = (item) => {
     console.log('➕ Adding item to cart:', item);
-    console.log('Item _id:', item._id);
+    console.log('Full item object:', JSON.stringify(item, null, 2));
     
-    // Validate item has _id
-    if (!item._id) {
-      console.error('❌ Item missing _id:', item);
-      alert('Error: Cannot add item without ID');
+    // Handle both _id and id fields (MongoDB ObjectId vs regular id)
+    const itemId = item._id || item.id;
+    console.log('Item ID:', itemId);
+    console.log('Item _id:', item._id);
+    console.log('Item id:', item.id);
+    
+    // Validate item has an ID
+    if (!itemId) {
+      console.error('❌ Item missing ID:', item);
+      console.error('Available keys:', Object.keys(item));
+      alert('Error: Cannot add item without ID. Check console for details.');
       return;
     }
     
@@ -56,13 +73,13 @@ const MenuPage = () => {
     const existingCart = JSON.parse(localStorage.getItem('cart') || '[]');
     console.log('Current cart:', existingCart);
     
-    const existingItem = existingCart.find(cartItem => cartItem._id === item._id);
+    const existingItem = existingCart.find(cartItem => cartItem._id === itemId);
     let updatedCart;
     
     if (existingItem) {
       // Update quantity of existing item
       updatedCart = existingCart.map(cartItem => 
-        cartItem._id === item._id 
+        cartItem._id === itemId 
           ? { ...cartItem, quantity: cartItem.quantity + 1 }
           : cartItem
       );
@@ -70,7 +87,7 @@ const MenuPage = () => {
     } else {
       // Add new item with all necessary fields
       const cartItem = {
-        _id: item._id,
+        _id: itemId, // Use the ID we found (either _id or id)
         name: item.name,
         description: item.description,
         price: item.price,
