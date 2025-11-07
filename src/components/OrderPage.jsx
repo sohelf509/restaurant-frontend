@@ -234,126 +234,163 @@ const OrderPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-indigo-600 to-purple-700 text-white py-8 px-4">
-        <div className="max-w-7xl mx-auto flex items-center gap-4">
-          <button 
-            onClick={() => navigate(tableNumber ? `/?table=${tableNumber}` : '/')}
-            className="text-white hover:text-gray-200 text-2xl"
-          >
-            ←
-          </button>
-          <div className="flex-1">
-            <h1 className="text-4xl font-bold mb-2">
-              {orderType === 'home-delivery' ? '🏠 Home Delivery' : `🍽️ Order for Table ${tableNumber || ''}`}
-            </h1>
-            <p className="text-indigo-100">
-              {orderType === 'home-delivery' 
-                ? 'We deliver to your doorstep' 
-                : 'Review and place your order'}
-            </p>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
+      {/* Hero Image Section */}
+      <div className="relative h-64 sm:h-72 md:h-80 lg:h-96 bg-cover bg-center" style={{
+        backgroundImage: "url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1600&h=600&fit=crop')",
+      }}>
+        <div className="absolute inset-0 bg-gradient-to-r from-indigo-900/90 via-purple-900/85 to-indigo-900/90">
+          <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-transparent"></div>
+        </div>
+        <div className="relative h-full flex items-center">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+            <div className="text-center">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-2 sm:mb-3 drop-shadow-lg">
+                {orderType === 'home-delivery' ? (
+                  <>
+                    <span className="inline-block animate-bounce">🏠</span> Home Delivery
+                  </>
+                ) : (
+                  <>
+                    <span className="inline-block">🍽️</span> Table {tableNumber || 'Service'}
+                  </>
+                )}
+              </h1>
+              <p className="text-base sm:text-lg md:text-xl text-indigo-100 drop-shadow-md max-w-2xl mx-auto">
+                {orderType === 'home-delivery' 
+                  ? 'Fresh, delicious food delivered right to your doorstep' 
+                  : 'Browse our exquisite menu and place your order'}
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
       {error && (
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
-            <div className="flex justify-between items-start">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="bg-red-50 border-l-4 border-red-500 p-4 sm:p-5 rounded-lg shadow-sm animate-shake">
+            <div className="flex justify-between items-start gap-4">
               <div className="flex-1">
-                <p className="text-red-700 font-semibold">{error}</p>
-                {error.includes('corrupted') || error.includes('invalid') ? (
-                  <button 
-                    onClick={clearCart}
-                    className="mt-2 text-red-600 underline hover:text-red-800 text-sm"
-                  >
-                    Clear Cart & Start Fresh
-                  </button>
-                ) : null}
+                <div className="flex items-start gap-3">
+                  <span className="text-2xl">⚠️</span>
+                  <div>
+                    <p className="text-red-800 font-semibold text-sm sm:text-base">{error}</p>
+                    {error.includes('corrupted') || error.includes('invalid') ? (
+                      <button 
+                        onClick={clearCart}
+                        className="mt-2 text-red-600 underline hover:text-red-800 text-sm font-medium hover:no-underline transition-all"
+                      >
+                        Clear Cart & Start Fresh →
+                      </button>
+                    ) : null}
+                  </div>
+                </div>
               </div>
-              <button onClick={() => setError(null)} className="text-red-700 font-bold text-xl ml-4">✕</button>
+              <button 
+                onClick={() => setError(null)} 
+                className="text-red-700 hover:text-red-900 font-bold text-xl hover:scale-110 transition-transform flex-shrink-0"
+                aria-label="Close error"
+              >
+                ✕
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Menu Section - Browse & Add More Items */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-2xl shadow-lg p-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Add More Items</h2>
+          <div className="lg:col-span-2 order-2 lg:order-1">
+            <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-4 sm:p-6 lg:p-8 hover:shadow-2xl transition-shadow duration-300">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">Browse Menu</h2>
+                  <p className="text-gray-500 text-sm">Add items to your order</p>
+                </div>
+                <div className="text-3xl sm:text-4xl">🍴</div>
+              </div>
               
               {/* Category Filter */}
-              <div className="flex gap-3 overflow-x-auto pb-4 mb-6 scrollbar-hide">
+              <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-4 mb-6 scrollbar-hide -mx-2 px-2">
                 {categories.map(category => (
                   <button
                     key={category}
                     onClick={() => setSelectedCategory(category)}
-                    className={`px-4 py-2 rounded-full font-medium whitespace-nowrap transition-all ${
+                    className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-full font-semibold whitespace-nowrap transition-all duration-200 text-sm sm:text-base ${
                       selectedCategory === category
-                        ? 'bg-indigo-600 text-white shadow-md'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg scale-105'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105'
                     }`}
                   >
-                    {category.charAt(0).toUpperCase() + category.slice(1)}
+                    {category === 'all' ? '🍽️ All' : category.charAt(0).toUpperCase() + category.slice(1)}
                   </button>
                 ))}
               </div>
 
               {/* Menu Items */}
-              <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
-                {filteredItems.map(item => (
-                  <div key={item.id || item._id} className="flex gap-4 bg-gray-50 rounded-xl p-4 hover:bg-gray-100 transition-colors group">
-                    {item.imageUrl && (
-                      <img 
-                        src={item.imageUrl} 
-                        alt={item.name} 
-                        className="w-24 h-24 object-cover rounded-lg flex-shrink-0"
-                      />
-                    )}
-                    <div className="flex-1">
-                      <h3 className="text-lg font-bold text-gray-900">{item.name}</h3>
-                      {item.description && (
-                        <p className="text-gray-600 text-sm mt-1 line-clamp-2">{item.description}</p>
+              {filteredItems.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="text-6xl mb-4">🍽️</div>
+                  <p className="text-gray-500 text-lg">No items available in this category</p>
+                </div>
+              ) : (
+                <div className="space-y-3 sm:space-y-4 max-h-[500px] sm:max-h-[600px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                  {filteredItems.map(item => (
+                    <div key={item.id || item._id} className="flex gap-3 sm:gap-4 bg-gradient-to-br from-gray-50 to-white rounded-xl p-3 sm:p-4 hover:shadow-lg transition-all duration-200 group border border-gray-100 hover:border-indigo-200">
+                      {item.imageUrl && (
+                        <img 
+                          src={item.imageUrl} 
+                          alt={item.name} 
+                          className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-lg flex-shrink-0 group-hover:scale-105 transition-transform duration-200 shadow-md"
+                        />
                       )}
-                      <div className="flex items-center gap-3 mt-2">
-                        {item.category && (
-                          <span className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">
-                            {item.category}
-                          </span>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-1 truncate">{item.name}</h3>
+                        {item.description && (
+                          <p className="text-gray-600 text-xs sm:text-sm mt-1 line-clamp-2">{item.description}</p>
                         )}
-                        <span className="text-xl font-bold text-indigo-600">${item.price.toFixed(2)}</span>
+                        <div className="flex items-center gap-2 sm:gap-3 mt-2 flex-wrap">
+                          {item.category && (
+                            <span className="bg-indigo-50 text-indigo-700 px-2 sm:px-3 py-1 rounded-full text-xs font-medium border border-indigo-100">
+                              {item.category}
+                            </span>
+                          )}
+                          <span className="text-lg sm:text-xl font-bold text-indigo-600">₹{item.price.toFixed(2)}</span>
+                        </div>
                       </div>
+                      <button 
+                        onClick={() => addToCart(item)}
+                        className="self-center w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-indigo-600 to-purple-600 text-white rounded-full text-xl sm:text-2xl font-bold hover:from-indigo-700 hover:to-purple-700 transition-all hover:scale-110 shadow-lg hover:shadow-xl flex-shrink-0"
+                        aria-label={`Add ${item.name} to cart`}
+                      >
+                        +
+                      </button>
                     </div>
-                    <button 
-                      onClick={() => addToCart(item)}
-                      className="self-center w-10 h-10 bg-indigo-600 text-white rounded-full text-2xl font-bold hover:bg-indigo-700 transition-all hover:scale-110 shadow-md"
-                    >
-                      +
-                    </button>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
           {/* Cart Summary Section */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-4">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Your Order</h2>
+          <div className="lg:col-span-1 order-1 lg:order-2">
+            <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-4 sm:p-6 sticky top-4 hover:shadow-2xl transition-shadow duration-300">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Your Order</h2>
+                <div className="text-2xl sm:text-3xl">🛒</div>
+              </div>
               
-              <form onSubmit={handleSubmitOrder} className="space-y-4">
+              <form onSubmit={handleSubmitOrder} className="space-y-4 sm:space-y-5">
                 {/* Order Type Selection */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Order Type *
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    Order Type <span className="text-red-500">*</span>
                   </label>
                   <select
                     value={orderType}
                     onChange={(e) => setOrderType(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white font-medium text-gray-700 hover:border-indigo-300"
                   >
                     <option value="dine-in">🍽️ Dine In</option>
                     <option value="home-delivery">🏠 Home Delivery</option>
@@ -362,10 +399,10 @@ const OrderPage = () => {
 
                 {/* Conditional Fields for Dine-In */}
                 {orderType === 'dine-in' && (
-                  <>
+                  <div className="space-y-4 animate-fadeIn">
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Table Number *
+                      <label className="block text-sm font-bold text-gray-700 mb-2">
+                        Table Number <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="number"
@@ -378,31 +415,31 @@ const OrderPage = () => {
                           window.history.pushState({}, '', url);
                         }}
                         placeholder="Enter table number"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all hover:border-indigo-300"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Your Name (Optional)
+                      <label className="block text-sm font-bold text-gray-700 mb-2">
+                        Your Name <span className="text-gray-400 text-xs">(Optional)</span>
                       </label>
                       <input
                         type="text"
                         value={customerName}
                         onChange={(e) => setCustomerName(e.target.value)}
                         placeholder="Enter your name"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all hover:border-indigo-300"
                       />
                     </div>
-                  </>
+                  </div>
                 )}
 
                 {/* Conditional Fields for Home Delivery */}
                 {orderType === 'home-delivery' && (
-                  <>
+                  <div className="space-y-4 animate-fadeIn">
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Your Name *
+                      <label className="block text-sm font-bold text-gray-700 mb-2">
+                        Your Name <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
@@ -410,13 +447,13 @@ const OrderPage = () => {
                         value={customerName}
                         onChange={(e) => setCustomerName(e.target.value)}
                         placeholder="Enter your name"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all hover:border-indigo-300"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Phone Number *
+                      <label className="block text-sm font-bold text-gray-700 mb-2">
+                        Phone Number <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="tel"
@@ -424,13 +461,13 @@ const OrderPage = () => {
                         value={phoneNumber}
                         onChange={(e) => setPhoneNumber(e.target.value)}
                         placeholder="Enter your phone number"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all hover:border-indigo-300"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Delivery Address *
+                      <label className="block text-sm font-bold text-gray-700 mb-2">
+                        Delivery Address <span className="text-red-500">*</span>
                       </label>
                       <textarea
                         required
@@ -438,124 +475,220 @@ const OrderPage = () => {
                         onChange={(e) => setDeliveryAddress(e.target.value)}
                         placeholder="Enter your full delivery address"
                         rows="3"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all resize-none hover:border-indigo-300"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Payment Method *
+                      <label className="block text-sm font-bold text-gray-700 mb-2">
+                        Payment Method <span className="text-red-500">*</span>
                       </label>
                       <select
                         value={paymentMethod}
                         onChange={(e) => setPaymentMethod(e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white font-medium text-gray-700 hover:border-indigo-300"
                       >
                         <option value="cash-on-delivery">💵 Cash on Delivery</option>
                         <option value="online-payment">💳 Online Payment</option>
                       </select>
                     </div>
 
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                      <p className="text-sm text-blue-800">
-                        <strong>ℹ️ Delivery Fee:</strong> $5.00
-                      </p>
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-4">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl">ℹ️</span>
+                        <p className="text-sm text-blue-900 font-semibold">
+                          Delivery Fee: <span className="text-indigo-600">₹5.00</span>
+                        </p>
+                      </div>
                     </div>
-                  </>
+                  </div>
                 )}
 
-                {/* Cart Items */}
-                {cart.length === 0 ? (
-                  <div className="text-center py-8">
-                    <div className="text-6xl mb-3">🛒</div>
-                    <p className="text-gray-500">Your cart is empty</p>
-                    <p className="text-gray-400 text-sm mt-1">Add items from the menu</p>
-                  </div>
-                ) : (
-                  <>
-                    <div className="space-y-3 max-h-60 overflow-y-auto">
-                      {cart.map(item => (
-                        <div key={item.id || item._id} className="bg-gray-50 rounded-lg p-3">
-                          <div className="flex justify-between items-start mb-2">
-                            <h4 className="font-semibold text-gray-900 flex-1">{item.name}</h4>
-                            <button 
-                              type="button"
-                              onClick={() => removeFromCart(item.id)}
-                              className="text-red-500 hover:text-red-700 text-lg ml-2"
-                            >
-                              🗑️
-                            </button>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
+                {/* Divider */}
+                <div className="border-t-2 border-gray-100 pt-4 sm:pt-5">
+                  <h3 className="text-lg font-bold text-gray-900 mb-3">Cart Items</h3>
+                  
+                  {/* Cart Items */}
+                  {cart.length === 0 ? (
+                    <div className="text-center py-8 sm:py-10">
+                      <div className="text-5xl sm:text-6xl mb-3">🛒</div>
+                      <p className="text-gray-500 font-medium">Your cart is empty</p>
+                      <p className="text-gray-400 text-sm mt-1">Add items from the menu</p>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="space-y-3 max-h-48 sm:max-h-60 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 mb-4">
+                        {cart.map(item => (
+                          <div key={item.id || item._id} className="bg-gradient-to-br from-gray-50 to-white rounded-xl p-3 border border-gray-100 hover:border-indigo-200 transition-all">
+                            <div className="flex justify-between items-start mb-2">
+                              <h4 className="font-bold text-gray-900 flex-1 text-sm sm:text-base pr-2">{item.name}</h4>
                               <button 
                                 type="button"
-                                onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                                className="w-7 h-7 bg-white border border-gray-300 rounded font-bold hover:bg-gray-100"
+                                onClick={() => removeFromCart(item.id)}
+                                className="text-red-500 hover:text-red-700 text-lg hover:scale-110 transition-transform flex-shrink-0"
+                                aria-label={`Remove ${item.name}`}
                               >
-                                -
-                              </button>
-                              <span className="font-semibold w-8 text-center">{item.quantity}</span>
-                              <button 
-                                type="button"
-                                onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                className="w-7 h-7 bg-white border border-gray-300 rounded font-bold hover:bg-gray-100"
-                              >
-                                +
+                                🗑️
                               </button>
                             </div>
-                            <span className="font-bold text-indigo-600">
-                              ${(item.price * item.quantity).toFixed(2)}
-                            </span>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <button 
+                                  type="button"
+                                  onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                  className="w-8 h-8 bg-white border-2 border-gray-300 rounded-lg font-bold hover:bg-indigo-50 hover:border-indigo-400 transition-all"
+                                  aria-label="Decrease quantity"
+                                >
+                                  -
+                                </button>
+                                <span className="font-bold w-8 text-center text-gray-900">{item.quantity}</span>
+                                <button 
+                                  type="button"
+                                  onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                  className="w-8 h-8 bg-white border-2 border-gray-300 rounded-lg font-bold hover:bg-indigo-50 hover:border-indigo-400 transition-all"
+                                  aria-label="Increase quantity"
+                                >
+                                  +
+                                </button>
+                              </div>
+                              <span className="font-bold text-indigo-600 text-sm sm:text-base text-center">
+                                ₹{(item.price * item.quantity).toFixed(2)}
+                              </span>
+                            </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="border-t pt-4 space-y-2">
-                      <div className="flex justify-between items-center text-gray-700">
-                        <span>Subtotal:</span>
-                        <span className="font-semibold">${getSubtotal().toFixed(2)}</span>
+                        ))}
                       </div>
-                      
-                      {orderType === 'home-delivery' && (
+
+                      {/* Order Summary */}
+                      <div className="border-t-2 border-gray-100 pt-4 space-y-3">
                         <div className="flex justify-between items-center text-gray-700">
-                          <span>Delivery Fee:</span>
-                          <span className="font-semibold">${getDeliveryFee().toFixed(2)}</span>
+                          <span className="font-medium">Subtotal:</span>
+                          <span className="font-bold text-lg text-center">₹{getSubtotal().toFixed(2)}</span>
                         </div>
-                      )}
+                        
+                        {orderType === 'home-delivery' && (
+                          <div className="flex justify-between items-center text-gray-700">
+                            <span className="font-medium">Delivery Fee:</span>
+                            <span className="font-bold text-lg text-center">₹{getDeliveryFee().toFixed(2)}</span>
+                          </div>
+                        )}
 
-                      <div className="flex justify-between items-center pt-2 border-t">
-                        <span className="text-lg font-semibold text-gray-700">Total:</span>
-                        <span className="text-3xl font-bold text-indigo-600">${getTotalAmount()}</span>
-                      </div>
+                        <div className="flex justify-between items-center pt-3 border-t-2 border-gray-200">
+                          <span className="text-xl font-bold text-gray-900">Total:</span>
+                          <span className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent text-center">
+                            ₹{getTotalAmount()}
+                          </span>
+                        </div>
 
-                      {cart.length > 0 && (
+                        {cart.length > 0 && (
+                          <button 
+                            type="button"
+                            onClick={clearCart}
+                            className="w-full mb-3 bg-white border-2 border-red-300 text-red-600 py-2.5 rounded-xl hover:bg-red-50 transition-all text-sm font-bold hover:border-red-400 hover:scale-105"
+                          >
+                            🗑️ Clear Cart
+                          </button>
+                        )}
+
                         <button 
-                          type="button"
-                          onClick={clearCart}
-                          className="w-full mb-3 bg-white border-2 border-red-400 text-red-600 py-2 rounded-lg hover:bg-red-50 transition-colors text-sm font-semibold"
+                          type="submit" 
+                          disabled={loading || cart.length === 0}
+                          className="w-full bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 text-white py-4 rounded-xl font-bold text-base sm:text-lg shadow-lg hover:shadow-2xl hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-lg bg-size-200 bg-pos-0 hover:bg-pos-100"
                         >
-                          Clear Cart
+                          {loading ? (
+                            <span className="flex items-center justify-center gap-2">
+                              <span className="animate-spin">⏳</span> Placing Order...
+                            </span>
+                          ) : (
+                            orderType === 'home-delivery' ? '🚚 Place Delivery Order' : '🍽️ Place Order Now'
+                          )}
                         </button>
-                      )}
-
-                      <button 
-                        type="submit" 
-                        disabled={loading || cart.length === 0}
-                        className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-                      >
-                        {loading ? 'Placing Order...' : 
-                         orderType === 'home-delivery' ? '🚚 Place Delivery Order' : '🍽️ Place Order'}
-                      </button>
-                    </div>
-                  </>
-                )}
+                      </div>
+                    </>
+                  )}
+                </div>
               </form>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Custom Styles for animations */}
+      <style>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          25% { transform: translateX(-5px); }
+          75% { transform: translateX(5px); }
+        }
+
+        .animate-fadeIn {
+          animation: fadeIn 0.3s ease-out;
+        }
+
+        .animate-shake {
+          animation: shake 0.5s ease-in-out;
+        }
+
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+
+        .scrollbar-thin::-webkit-scrollbar {
+          width: 6px;
+        }
+
+        .scrollbar-thin::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 10px;
+        }
+
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+          background: #cbd5e1;
+          border-radius: 10px;
+        }
+
+        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+          background: #94a3b8;
+        }
+
+        .bg-size-200 {
+          background-size: 200% auto;
+        }
+
+        .bg-pos-0 {
+          background-position: 0% center;
+        }
+
+        .bg-pos-100:hover {
+          background-position: 100% center;
+          transition: 0.5s;
+        }
+
+        @media (max-width: 640px) {
+          .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+          }
+        }
+      `}</style>
     </div>
   );
 };

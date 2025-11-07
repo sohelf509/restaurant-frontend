@@ -7,6 +7,7 @@ const MenuPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [cartCount, setCartCount] = useState(0);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   
@@ -16,7 +17,14 @@ const MenuPage = () => {
 
   useEffect(() => {
     fetchMenuItems();
+    updateCartCount();
   }, []);
+
+  const updateCartCount = () => {
+    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+    setCartCount(count);
+  };
 
   const fetchMenuItems = async () => {
     try {
@@ -102,6 +110,9 @@ const MenuPage = () => {
     localStorage.setItem('cart', JSON.stringify(updatedCart));
     console.log('💾 Cart saved:', updatedCart);
     
+    // Update cart count
+    updateCartCount();
+    
     // Redirect to order page with table number
     if (tableNumber) {
       navigate(`/order?table=${tableNumber}`);
@@ -135,36 +146,62 @@ const MenuPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-8">
-      {/* Header */}
+      {/* Hero Image Banner Section */}
+      <div className="relative h-64 sm:h-80 md:h-96 overflow-hidden">
+        <img 
+          src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1200&h=400&fit=crop" 
+          alt="Restaurant food banner" 
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/40 to-black/60 flex flex-col items-center justify-center">
+          <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold text-white mb-6 drop-shadow-lg">
+            Our Menu
+          </h1>
+          <div className="flex items-center gap-3 text-white text-base sm:text-lg">
+            <span className="hover:text-gray-200 transition-colors cursor-pointer">Home</span>
+            <span className="text-xl">›</span>
+            <span className="font-semibold text-gray-200">Menu</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Header with Cart Button */}
       <header className="bg-white shadow-md sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Our Menu</h1>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4 flex justify-between items-center">
+          <div className="flex items-center gap-2">
             {tableNumber && (
-              <p className="text-sm text-indigo-600 font-semibold mt-1">Table {tableNumber}</p>
+              <div className="flex items-center gap-2 bg-indigo-50 px-3 py-1.5 rounded-full">
+                <span className="text-xs sm:text-sm text-indigo-600 font-semibold">Table {tableNumber}</span>
+              </div>
             )}
           </div>
           <button 
             onClick={() => navigate(tableNumber ? `/order?table=${tableNumber}` : '/order')}
-            className="bg-gradient-to-r from-pink-500 to-rose-500 text-white px-6 py-3 rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 flex items-center gap-2"
+            className="relative bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 text-white px-4 py-2.5 sm:px-6 sm:py-3 rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 flex items-center gap-2 group overflow-hidden"
           >
-            <span className="text-xl">🛒</span>
-            <span className="font-semibold">View Cart</span>
+            <div className="absolute inset-0 bg-gradient-to-r from-pink-600 to-orange-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <span className="relative text-lg sm:text-xl animate-bounce">🛒</span>
+            <span className="relative font-bold text-sm sm:text-base tracking-wide">View Cart</span>
+            {cartCount > 0 && (
+              <div className="relative ml-1 bg-white text-orange-600 rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center text-xs font-bold shadow-md animate-pulse">
+                {cartCount}
+              </div>
+            )}
           </button>
         </div>
       </header>
 
       {/* Category Filter */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6">
+        <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-2 snap-x snap-mandatory" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           {categories.map(category => (
             <button
               key={category}
               onClick={() => setSelectedCategory(category)}
-              className={`px-6 py-2 rounded-full font-medium whitespace-nowrap transition-all duration-300 ${
+              className={`px-4 py-2 sm:px-6 sm:py-2.5 rounded-full font-semibold text-sm sm:text-base whitespace-nowrap transition-all duration-300 snap-start flex-shrink-0 ${
                 selectedCategory === category
-                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg scale-105'
-                  : 'bg-white text-gray-700 border-2 border-gray-200 hover:border-indigo-400 hover:text-indigo-600'
+                  ? 'bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white shadow-lg scale-105 ring-2 ring-purple-300'
+                  : 'bg-white text-gray-700 border-2 border-gray-200 hover:border-indigo-400 hover:text-indigo-600 hover:shadow-md'
               }`}
             >
               {category.charAt(0).toUpperCase() + category.slice(1)}
@@ -174,41 +211,49 @@ const MenuPage = () => {
       </div>
 
       {/* Menu Grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+        <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
           {filteredItems.map(item => (
             <div 
               key={item.id || item._id} 
-              className="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 group"
+              className="bg-white rounded-xl sm:rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 group border border-gray-100"
             >
               {item.imageUrl && (
-                <div className="relative h-48 overflow-hidden">
+                <div className="relative h-40 sm:h-48 md:h-52 overflow-hidden bg-gray-100">
                   <img 
                     src={item.imageUrl} 
                     alt={item.name} 
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                   />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   {item.category && (
-                    <span className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-gray-700 px-3 py-1 rounded-full text-xs font-semibold">
+                    <span className="absolute top-2 sm:top-3 left-2 sm:left-3 bg-white/95 backdrop-blur-sm text-gray-800 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs font-bold shadow-md uppercase tracking-wide">
                       {item.category}
                     </span>
                   )}
                 </div>
               )}
-              <div className="p-4">
-                <h3 className="text-xl font-bold text-gray-900 mb-2">{item.name}</h3>
+              <div className="p-3 sm:p-4">
+                <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-1.5 sm:mb-2 line-clamp-1">
+                  {item.name}
+                </h3>
                 {item.description && (
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-2">{item.description}</p>
+                  <p className="text-gray-600 text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2 leading-relaxed">
+                    {item.description}
+                  </p>
                 )}
-                <div className="flex justify-between items-center">
-                  <span className="text-2xl font-bold text-indigo-600">
-                    ${item.price.toFixed(2)}
-                  </span>
+                <div className="flex justify-between items-center gap-2">
+                  <div className="flex flex-col">
+                    <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                      ₹{item.price.toFixed(2)}
+                    </span>
+                  </div>
                   <button 
                     onClick={() => handleAddToCart(item)}
-                    className="bg-gradient-to-r from-teal-500 to-cyan-500 text-white px-5 py-2 rounded-lg font-semibold hover:from-teal-600 hover:to-cyan-600 transition-all duration-300 shadow-md hover:shadow-lg"
+                    className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-3 py-2 sm:px-5 sm:py-2.5 rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm hover:from-emerald-600 hover:to-teal-600 transition-all duration-300 shadow-md hover:shadow-xl transform hover:scale-105 active:scale-95 whitespace-nowrap"
                   >
-                    Add to Cart
+                    <span className="hidden sm:inline">Add to Cart</span>
+                    <span className="sm:hidden">Add</span>
                   </button>
                 </div>
               </div>
@@ -217,8 +262,10 @@ const MenuPage = () => {
         </div>
 
         {filteredItems.length === 0 && (
-          <div className="text-center py-20">
-            <p className="text-gray-500 text-xl">No items available in this category</p>
+          <div className="text-center py-16 sm:py-20">
+            <div className="text-6xl sm:text-7xl mb-4">🍽️</div>
+            <p className="text-gray-500 text-lg sm:text-xl font-medium">No items available in this category</p>
+            <p className="text-gray-400 text-sm mt-2">Try selecting a different category</p>
           </div>
         )}
       </div>
