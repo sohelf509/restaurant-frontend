@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import Hero from './Hero.jsx';
 import OurSpeciality from './OurSpeciality.jsx';
 import Testimonials from './Testimonials.jsx';
@@ -88,12 +89,12 @@ const HomePage = () => {
                 <h1 className="text-white text-2xl sm:text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 sm:mb-6 md:mb-8 max-w-5xl leading-tight">
                   {slide.title}
                 </h1>
-                <a 
-                  href="/menu" 
-                  className="bg-orange-600 hover:bg-orange-700 text-white px-6 sm:px-8 py-2.5 sm:py-3 text-base sm:text-lg font-medium transition-colors shadow-lg rounded"
+                <Link 
+                  to="/menu" 
+                  className="bg-orange-600 hover:bg-orange-700 text-white px-6 sm:px-8 py-2.5 sm:py-3 text-base sm:text-lg font-medium transition-colors shadow-lg rounded inline-block"
                 >
                   View Menu
-                </a>
+                </Link>
               </div>
             </div>
           </div>
