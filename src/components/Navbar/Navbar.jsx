@@ -26,12 +26,12 @@ const Navbar = () => {
   // Prevent body scroll when mobile menu is open
   useEffect(() => {
     if (isMobileMenuOpen) {
-      document.body.classList.add('overflow-hidden');
+      document.body.style.overflow = 'hidden';
     } else {
-      document.body.classList.remove('overflow-hidden');
+      document.body.style.overflow = 'unset';
     }
     return () => {
-      document.body.classList.remove('overflow-hidden');
+      document.body.style.overflow = 'unset';
     };
   }, [isMobileMenuOpen]);
 
@@ -40,9 +40,9 @@ const Navbar = () => {
   return (
     <nav className={`bg-white fixed w-full top-0 z-50 transition-shadow duration-300 ${scrolled ? 'shadow-2xl' : 'shadow-md'}`}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-14 sm:h-16 md:h-20">
+        <div className="flex justify-between items-center h-16 sm:h-18 md:h-20">
           {/* Logo - Responsive sizing */}
-          <Link to="/" className="shrink-0 z-50" onClick={() => setIsMobileMenuOpen(false)}>
+          <Link to="/" className="shrink-0 z-50 relative" onClick={() => setIsMobileMenuOpen(false)}>
             <img 
               src="/logo.png" 
               alt="India Restaurant Logo" 
@@ -94,15 +94,13 @@ const Navbar = () => {
                 </svg>
               </button>
 
-              {/* Dropdown Menu with padding bridge to prevent gaps */}
+              {/* Dropdown Menu */}
               <div 
                 className={`absolute start-0 mt-1 w-48 transition-all duration-200 ${
                   isOrderDropdownOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible -translate-y-2'
                 }`}
               >
-                {/* Invisible bridge to prevent hover gaps */}
                 <div className="h-1 -mt-1" />
-                
                 <div className="bg-white rounded-lg shadow-xl ring-1 ring-black/5 overflow-hidden">
                   <Link 
                     to="/order" 
@@ -144,9 +142,9 @@ const Navbar = () => {
             </Link>
           </div>
 
-          {/* Mobile Menu Button - Larger touch target */}
+          {/* Mobile Menu Button */}
           <button 
-            className="lg:hidden text-gray-700 hover:text-orange-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 rounded-lg p-2 transition-colors duration-200 z-50"
+            className="lg:hidden text-gray-700 hover:text-orange-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 rounded-lg p-2 transition-colors duration-200 z-50 relative"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-label="Toggle menu"
             aria-expanded={isMobileMenuOpen}
@@ -162,127 +160,127 @@ const Navbar = () => {
             )}
           </button>
         </div>
-
-        {/* Mobile Menu - Full screen overlay on small devices */}
-        <div 
-          className={`lg:hidden fixed inset-0 bg-white transition-all duration-300 ease-in-out ${
-            isMobileMenuOpen 
-              ? 'top-14 sm:top-16 md:top-20 opacity-100' 
-              : 'top-0 opacity-0 pointer-events-none'
-          }`}
-        >
-          <div className="h-[calc(100vh-3.5rem)] overflow-y-auto overscroll-contain pb-20">
-            <div className="px-4 py-6 space-y-2">
-              <Link 
-                to="/" 
-                className={`block px-4 py-3 min-h-12 text-base font-medium text-gray-700 hover:bg-orange-50 hover:text-orange-500 rounded-lg transition-all duration-200 flex items-center ${
-                  isActivePath('/') ? 'bg-orange-50 text-orange-500 border-s-4 border-orange-500' : ''
-                }`}
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Home
-              </Link>
-              
-              <Link 
-                to="/menu" 
-                className={`block px-4 py-3 min-h-12 text-base font-medium text-gray-700 hover:bg-orange-50 hover:text-orange-500 rounded-lg transition-all duration-200 flex items-center ${
-                  isActivePath('/menu') ? 'bg-orange-50 text-orange-500 border-s-4 border-orange-500' : ''
-                }`}
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Menu
-              </Link>
-
-              {/* Mobile Order Dropdown */}
-              <div>
-                <button
-                  className={`w-full block px-4 py-3 min-h-12 text-base font-medium text-gray-700 hover:bg-orange-50 hover:text-orange-500 rounded-lg transition-all duration-200 flex justify-between items-center ${
-                    (isActivePath('/order') || isActivePath('/order-tracking')) && !isMobileOrderOpen
-                      ? 'bg-orange-50 text-orange-500 border-s-4 border-orange-500' 
-                      : ''
-                  }`}
-                  onClick={() => setIsMobileOrderOpen(!isMobileOrderOpen)}
-                >
-                  <span>Order</span>
-                  <svg 
-                    className={`size-5 transition-transform duration-200 ${isMobileOrderOpen ? 'rotate-180' : ''}`} 
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-
-                {/* Mobile Submenu with smooth transition */}
-                <div 
-                  className={`grid transition-all duration-300 ${
-                    isMobileOrderOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
-                  }`}
-                >
-                  <div className="overflow-hidden">
-                    <div className="ms-4 mt-2 space-y-2">
-                      <Link 
-                        to="/order" 
-                        className={`block px-4 py-3 min-h-11 text-sm text-gray-600 hover:bg-orange-50 hover:text-orange-500 rounded-lg transition-colors duration-150 ${
-                          isActivePath('/order') ? 'bg-orange-50 text-orange-500' : ''
-                        }`}
-                        onClick={() => {
-                          setIsMobileOrderOpen(false);
-                          setIsMobileMenuOpen(false);
-                        }}
-                      >
-                        Order Page
-                      </Link>
-                      <Link 
-                        to="/order-tracking" 
-                        className={`block px-4 py-3 min-h-11 text-sm text-gray-600 hover:bg-orange-50 hover:text-orange-500 rounded-lg transition-colors duration-150 ${
-                          isActivePath('/order-tracking') ? 'bg-orange-50 text-orange-500' : ''
-                        }`}
-                        onClick={() => {
-                          setIsMobileOrderOpen(false);
-                          setIsMobileMenuOpen(false);
-                        }}
-                      >
-                        Order Tracking
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <Link 
-                to="/gallery" 
-                className={`block px-4 py-3 min-h-12 text-base font-medium text-gray-700 hover:bg-orange-50 hover:text-orange-500 rounded-lg transition-all duration-200 flex items-center ${
-                  isActivePath('/gallery') ? 'bg-orange-50 text-orange-500 border-s-4 border-orange-500' : ''
-                }`}
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Gallery
-              </Link>
-              
-              <Link 
-                to="/contact" 
-                className={`block px-4 py-3 min-h-12 text-base font-medium text-gray-700 hover:bg-orange-50 hover:text-orange-500 rounded-lg transition-all duration-200 flex items-center ${
-                  isActivePath('/contact') ? 'bg-orange-50 text-orange-500 border-s-4 border-orange-500' : ''
-                }`}
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Contact Us
-              </Link>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Overlay backdrop for mobile menu */}
       {isMobileMenuOpen && (
         <div 
-          className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40 top-14 sm:top-16 md:top-20"
+          className="lg:hidden fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
+          style={{ top: scrolled ? '64px' : '64px' }}
           onClick={() => setIsMobileMenuOpen(false)}
           aria-hidden="true"
         />
       )}
+
+      {/* Mobile Menu */}
+      <div 
+        className={`lg:hidden fixed left-0 right-0 bg-white shadow-2xl transition-all duration-300 ease-in-out z-50 ${
+          isMobileMenuOpen 
+            ? 'top-16 sm:top-18 md:top-20 opacity-100 translate-y-0' 
+            : 'top-16 sm:top-18 md:top-20 opacity-0 -translate-y-4 pointer-events-none'
+        }`}
+        style={{ maxHeight: 'calc(100vh - 4rem)' }}
+      >
+        <div className="h-full overflow-y-auto overscroll-contain">
+          <div className="px-4 py-4 space-y-1">
+            <Link 
+              to="/" 
+              className={`block px-4 py-3 text-base font-medium text-gray-700 hover:bg-orange-50 hover:text-orange-500 rounded-lg transition-all duration-200 ${
+                isActivePath('/') ? 'bg-orange-50 text-orange-500 border-l-4 border-orange-500' : ''
+              }`}
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Home
+            </Link>
+            
+            <Link 
+              to="/menu" 
+              className={`block px-4 py-3 text-base font-medium text-gray-700 hover:bg-orange-50 hover:text-orange-500 rounded-lg transition-all duration-200 ${
+                isActivePath('/menu') ? 'bg-orange-50 text-orange-500 border-l-4 border-orange-500' : ''
+              }`}
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Menu
+            </Link>
+
+            {/* Mobile Order Dropdown */}
+            <div>
+              <button
+                className={`w-full px-4 py-3 text-base font-medium text-gray-700 hover:bg-orange-50 hover:text-orange-500 rounded-lg transition-all duration-200 flex justify-between items-center ${
+                  (isActivePath('/order') || isActivePath('/order-tracking')) && !isMobileOrderOpen
+                    ? 'bg-orange-50 text-orange-500 border-l-4 border-orange-500' 
+                    : ''
+                }`}
+                onClick={() => setIsMobileOrderOpen(!isMobileOrderOpen)}
+              >
+                <span>Order</span>
+                <svg 
+                  className={`size-5 transition-transform duration-200 ${isMobileOrderOpen ? 'rotate-180' : ''}`} 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {/* Mobile Submenu */}
+              <div 
+                className={`overflow-hidden transition-all duration-300 ${
+                  isMobileOrderOpen ? 'max-h-40 opacity-100 mt-1' : 'max-h-0 opacity-0'
+                }`}
+              >
+                <div className="ml-4 space-y-1">
+                  <Link 
+                    to="/order" 
+                    className={`block px-4 py-2.5 text-sm text-gray-600 hover:bg-orange-50 hover:text-orange-500 rounded-lg transition-colors duration-150 ${
+                      isActivePath('/order') ? 'bg-orange-50 text-orange-500' : ''
+                    }`}
+                    onClick={() => {
+                      setIsMobileOrderOpen(false);
+                      setIsMobileMenuOpen(false);
+                    }}
+                  >
+                    Order Page
+                  </Link>
+                  <Link 
+                    to="/order-tracking" 
+                    className={`block px-4 py-2.5 text-sm text-gray-600 hover:bg-orange-50 hover:text-orange-500 rounded-lg transition-colors duration-150 ${
+                      isActivePath('/order-tracking') ? 'bg-orange-50 text-orange-500' : ''
+                    }`}
+                    onClick={() => {
+                      setIsMobileOrderOpen(false);
+                      setIsMobileMenuOpen(false);
+                    }}
+                  >
+                    Order Tracking
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            <Link 
+              to="/gallery" 
+              className={`block px-4 py-3 text-base font-medium text-gray-700 hover:bg-orange-50 hover:text-orange-500 rounded-lg transition-all duration-200 ${
+                isActivePath('/gallery') ? 'bg-orange-50 text-orange-500 border-l-4 border-orange-500' : ''
+              }`}
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Gallery
+            </Link>
+            
+            <Link 
+              to="/contact" 
+              className={`block px-4 py-3 text-base font-medium text-gray-700 hover:bg-orange-50 hover:text-orange-500 rounded-lg transition-all duration-200 ${
+                isActivePath('/contact') ? 'bg-orange-50 text-orange-500 border-l-4 border-orange-500' : ''
+              }`}
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Contact Us
+            </Link>
+          </div>
+        </div>
+      </div>
     </nav>
   );
 };
